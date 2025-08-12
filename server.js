@@ -11,7 +11,7 @@ app.use(express.json());
 
 // CORS configuration for credentials
 app.use(cors({
-  origin: 'http://localhost:3000', // Your frontend URL
+  origin: 'https://ticketanywhere2025.vercel.app/', // Your frontend URL
   credentials: true
 }));
 

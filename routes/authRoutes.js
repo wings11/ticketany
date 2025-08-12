@@ -11,7 +11,7 @@ router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {
     // Successful authentication, redirect to frontend
-    res.redirect('http://localhost:3000/dashboard'); // Change to your frontend URL
+    res.redirect('https://ticketanywhere2025.vercel.app/dashboard'); // Change to your frontend URL
   }
 );
 
