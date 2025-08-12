@@ -34,7 +34,13 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // MongoDB connection (Atlas or local from .env)
-mongoose.connect(process.env.MONGO_URI);
+mongoose.connect(process.env.MONGO_URI, {
+  ssl: true,
+  tls: true,
+  tlsInsecure: false,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+});
 
 
 const db = mongoose.connection;
