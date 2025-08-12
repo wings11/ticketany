@@ -41,15 +41,11 @@ const connectDB = async () => {
   
   try {
     await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       serverSelectionTimeoutMS: 30000,
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
       minPoolSize: 1,
-      maxIdleTimeMS: 30000,
-      bufferCommands: false,
-      bufferMaxEntries: 0
+      maxIdleTimeMS: 30000
     });
     console.log('Connected to MongoDB');
   } catch (error) {
@@ -57,7 +53,7 @@ const connectDB = async () => {
   }
 };
 
-// Connect to database
+// Connect to database immediately
 connectDB();
 
 
