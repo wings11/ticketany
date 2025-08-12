@@ -11,7 +11,9 @@ app.use(express.json());
 
 // CORS configuration for credentials
 app.use(cors({
-  origin: 'https://ticketanywhere2025.vercel.app/', // Your frontend URL
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://ticketanywhere2025.vercel.app' 
+    : 'http://localhost:3000', // Your frontend URL
   credentials: true
 }));
 
@@ -21,7 +23,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false, // Set to true in production with HTTPS
+    secure: process.env.NODE_ENV === 'production', // Set to true in production with HTTPS
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
@@ -32,10 +34,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // MongoDB connection (Atlas or local from .env)
-mongoose.connect(process.env.MONGO_URI, {
-	useNewUrlParser: true,
-	useUnifiedTopology: true
-});
+mongoose.connect(process.env.MONGO_URI);
 
 
 const db = mongoose.connection;
@@ -59,7 +58,7 @@ app.get('/', (req, res) => {
 	res.send('Event Ticketing API is running');
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`);
 });
