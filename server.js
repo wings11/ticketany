@@ -12,7 +12,7 @@ app.use(express.json());
 // CORS configuration for credentials
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://ticketany.vercel.app', 'https://ticketany-m1kbvngbk-wings11s-projects.vercel.app']
+    ? 'https://ticketany.onrender.com'
     : 'http://localhost:3000', // Your frontend URL
   credentials: true
 }));
@@ -33,7 +33,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// MongoDB connection with connection pooling for serverless
+// MongoDB connection for traditional server environment
 const connectDB = async () => {
   if (mongoose.connections[0].readyState) {
     return;
@@ -42,14 +42,12 @@ const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: 30000,
-      socketTimeoutMS: 45000,
-      maxPoolSize: 10,
-      minPoolSize: 1,
-      maxIdleTimeMS: 30000
+      socketTimeoutMS: 45000
     });
     console.log('Connected to MongoDB');
   } catch (error) {
     console.error('MongoDB connection error:', error);
+    process.exit(1);
   }
 };
 
@@ -61,12 +59,6 @@ const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 db.once('open', () => {
 	console.log('Connected to MongoDB');
-});
-
-// Middleware to ensure DB connection on each request (for serverless)
-app.use(async (req, res, next) => {
-  await connectDB();
-  next();
 });
 
 
@@ -86,12 +78,6 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5001;
 
-// Only start server if not in serverless environment
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
-
-// Export the Express app for Vercel
-module.exports = app;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
