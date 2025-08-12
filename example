@@ -1,0 +1,15 @@
+http://localhost:5000/api/events
+{
+  "title": "Music Concert",
+  "description": "Live music event",
+  "date": "2025-09-01T19:00:00.000Z",
+  "location": "City Hall",
+  "price": 50,
+  "ticketsAvailable": 100
+}
+http://localhost:5000/api/tickets
+{
+  "eventId": "EVENT_OBJECT_ID",
+  "userId": "USER_OBJECT_ID",
+  "quantity": 2
+}
