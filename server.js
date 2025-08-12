@@ -41,24 +41,42 @@ const connectDB = async () => {
   
   try {
     await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 30000,
-      socketTimeoutMS: 45000
+      serverSelectionTimeoutMS: 60000,
+      socketTimeoutMS: 60000,
+      connectTimeoutMS: 60000,
+      retryWrites: true,
+      w: 'majority'
     });
     console.log('Connected to MongoDB');
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    process.exit(1);
+    console.log('Retrying MongoDB connection in 5 seconds...');
+    setTimeout(() => {
+      connectDB();
+    }, 5000);
   }
 };
 
-// Connect to database immediately
+// Connect to database with retry logic
 connectDB();
 
 
 const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.on('error', (error) => {
+  console.error('MongoDB connection error:', error);
+  // Don't exit, just log the error
+});
 db.once('open', () => {
-	console.log('Connected to MongoDB');
+	console.log('Connected to MongoDB successfully');
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 
@@ -76,8 +94,8 @@ app.get('/', (req, res) => {
 	res.send('Event Ticketing API is running');
 });
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 10000;
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
