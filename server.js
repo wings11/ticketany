@@ -12,7 +12,7 @@ app.use(express.json());
 // CORS configuration for credentials
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? 'https://ticketanywhere2025.vercel.app' 
+    ? ['https://ticketany.vercel.app', 'https://ticketany-m1kbvngbk-wings11s-projects.vercel.app']
     : 'http://localhost:3000', // Your frontend URL
   credentials: true
 }));
@@ -33,20 +33,44 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// MongoDB connection (Atlas or local from .env)
-mongoose.connect(process.env.MONGO_URI, {
-  ssl: true,
-  tls: true,
-  tlsInsecure: false,
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-});
+// MongoDB connection with connection pooling for serverless
+const connectDB = async () => {
+  if (mongoose.connections[0].readyState) {
+    return;
+  }
+  
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      minPoolSize: 1,
+      maxIdleTimeMS: 30000,
+      bufferCommands: false,
+      bufferMaxEntries: 0
+    });
+    console.log('Connected to MongoDB');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+  }
+};
+
+// Connect to database
+connectDB();
 
 
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 db.once('open', () => {
 	console.log('Connected to MongoDB');
+});
+
+// Middleware to ensure DB connection on each request (for serverless)
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
 });
 
 
