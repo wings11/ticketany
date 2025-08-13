@@ -31,11 +31,23 @@ export default function HomePage() {
 
   const fetchEvents = async () => {
     try {
+      console.log('API Config:', apiConfig)
+      console.log('Events endpoint:', apiConfig.endpoints.events)
+      console.log('Environment variable:', process.env.NEXT_PUBLIC_API_URL)
+      
       const response = await apiCall(apiConfig.endpoints.events)
+      console.log('Response status:', response.status)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
       const data = await response.json()
+      console.log('Events data:', data)
       setEvents(data)
     } catch (error) {
       console.error('Error fetching events:', error)
+      console.error('Error details:', error instanceof Error ? error.message : 'Unknown error')
     } finally {
       setLoading(false)
     }

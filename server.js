@@ -10,12 +10,10 @@ const app = express();
 app.use(express.json());
 
 // CORS configuration for credentials
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'https://ticketany.onrender.com'
-    : 'http://localhost:3000', // Your frontend URL
-  credentials: true
-}));
+  app.use(cors({
+    origin: true, // Allow all origins
+    credentials: true
+  }));
 
 // Session configuration
 app.use(session({
@@ -35,64 +33,30 @@ app.use(passport.session());
 
 // MongoDB connection for traditional server environment
 const connectDB = async () => {
+  if (mongoose.connections[0].readyState) {
+    return;
+  }
+  
   try {
-    // Close existing connections
-    if (mongoose.connections[0].readyState !== 0) {
-      await mongoose.disconnect();
-    }
-    
     await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 60000,
-      socketTimeoutMS: 60000,
-      connectTimeoutMS: 60000
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 45000
     });
-    console.log('Connected to MongoDB successfully');
-    return true;
+    console.log('Connected to MongoDB');
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    throw error;
+    process.exit(1);
   }
 };
 
-// Initialize database connection and start server
-const startServer = async () => {
-  try {
-    await connectDB();
-    
-    const PORT = process.env.PORT || 10000;
-    
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log('MongoDB connection established');
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    setTimeout(startServer, 5000);
-  }
-};
-
-// Start the server
-startServer();
+// Connect to database immediately
+connectDB();
 
 
 const db = mongoose.connection;
-db.on('error', (error) => {
-  console.error('MongoDB connection error:', error);
-});
-db.on('connected', () => {
-	console.log('Mongoose connected to MongoDB');
-});
-db.on('disconnected', () => {
-	console.log('Mongoose disconnected from MongoDB');
-});
-
-// Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', () => {
+	console.log('Connected to MongoDB');
 });
 
 
@@ -110,12 +74,8 @@ app.get('/', (req, res) => {
 	res.send('Event Ticketing API is running');
 });
 
-// Health check route
-app.get('/health', (req, res) => {
-  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-  res.json({
-    status: 'ok',
-    database: dbStatus,
-    timestamp: new Date().toISOString()
-  });
+const PORT = process.env.PORT || 5001;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
