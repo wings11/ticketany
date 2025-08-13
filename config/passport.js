@@ -10,6 +10,7 @@ passport.use(new GoogleStrategy({
     ? "https://ticketany.onrender.com/auth/google/callback"
     : "http://localhost:5001/auth/google/callback"
 }, async (accessToken, refreshToken, profile, done) => {
+  console.log('Google OAuth callback received for user:', profile.emails[0].value);
   try {
     // Check if user already exists
     let existingUser = await User.findOne({ email: profile.emails[0].value });
