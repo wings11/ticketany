@@ -24,7 +24,8 @@ export default function DebugPage() {
             alert(`Found ${data.length} events`)
           } catch (error) {
             console.error('API Error:', error)
-            alert('API call failed: ' + error.message)
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+            alert('API call failed: ' + errorMessage)
           }
         }}
       >

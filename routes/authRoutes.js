@@ -37,13 +37,31 @@ router.get('/clear-session', (req, res) => {
 router.get('/google/callback', 
   passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {
-    // Successful authentication, redirect to frontend
-    const frontendUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://ticketanywhere2025.vercel.app/dashboard'
-      : 'http://localhost:3000/dashboard';
-    res.redirect(frontendUrl);
+    console.log('Google OAuth callback received for user:', req.user?.email);
+    // Successful authentication, redirect to a success page that will handle the frontend redirect
+    const successUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://ticketanywhere2025-hujude7wn-wings11s-projects.vercel.app/auth/success'
+      : 'http://localhost:3000/auth/success';
+    console.log('Redirecting to:', successUrl);
+    res.redirect(successUrl);
   }
 );
+
+// Auth success endpoint for frontend to check auth status after OAuth
+router.get('/success', (req, res) => {
+  if (req.user) {
+    res.json({ 
+      success: true, 
+      user: req.user,
+      message: 'Authentication successful' 
+    });
+  } else {
+    res.status(401).json({ 
+      success: false, 
+      error: 'Authentication failed' 
+    });
+  }
+});
 
 // Logout
 router.get('/logout', (req, res) => {
